@@ -15,7 +15,7 @@ class ProxyServer:
         self.password = password
         self.allowed_hosts = allowed_hosts
         self.blocked_hosts = blocked_hosts
-        self.proxies = []
+        self._proxies = []
         self.rotate_ipv6_thread = None
         self.rotation_stop_event = threading.Event()
 
@@ -35,7 +35,7 @@ class ProxyServer:
         """
         
         while not self.rotation_stop_event.is_set():
-            self.proxies = [self.generate_ipv6() for _ in range(self.num_proxies)]
+            self._proxies = [self.generate_ipv6() for _ in range(self.num_proxies)]
             print(f"Rotated {self.num_proxies} IPv6 proxies")
             time.sleep(self.rotation_interval)
 
@@ -45,10 +45,37 @@ class ProxyServer:
         Обработка подключения клиента.
         """
         
-        proxy_ip = self.proxies[proxy_index]
+        proxy_ip = self._proxies[proxy_index]
         print(f"Client connected. Proxy IPv6: {proxy_ip}")
-        client_socket.send(proxy_ip.encode())
+
+        if self.username and self.password:
+            # Читаем заголовок авторизации от клиента
+            auth_header = client_socket.recv(1024).decode()
+
+            # Проверяем наличие и корректность заголовка авторизации
+            if not auth_header.startswith('Authorization: Basic '):
+                # Если заголовок не передан или некорректен, отправляем код статуса 401 Unauthorized
+                client_socket.sendall(b"HTTP/1.1 401 Unauthorized\r\nWWW-Authenticate: Basic realm='Proxy Server'\r\n\r\n")
+                client_socket.close()
+                return
+
+            # Извлекаем закодированные учетные данные из заголовка
+            encoded_credentials = auth_header[len('Authorization: Basic '):]
+            # Декодируем и разделяем учетные данные на логин и пароль
+            credentials = encoded_credentials.strip().decode('base64').split(':')
+            
+            # Проверяем, совпадают ли переданные учетные данные с установленными
+            if credentials[0] != self.username or credentials[1] != self.password:
+                # Если учетные данные не совпадают, отправляем код статуса 401 Unauthorized
+                client_socket.sendall(b"HTTP/1.1 401 Unauthorized\r\nWWW-Authenticate: Basic realm='Proxy Server'\r\n\r\n")
+                client_socket.close()
+                return
+
+        # Если учетные данные верны или не требуется аутентификация
+        # Отправляем клиенту IP адрес прокси
+        client_socket.sendall(proxy_ip.encode())
         client_socket.close()
+
 
 
     def start_socks5_server(self):
@@ -94,8 +121,11 @@ class ProxyServer:
             "allowed_hosts": self.allowed_hosts,
             "blocked_hosts": self.blocked_hosts
         }
-
-
-if __name__ == "__main__":
-    proxy_server = ProxyServer(subnet="fe80::", prefix_length=48, num_proxies=10, rotation_interval=300)
-    proxy_server.start_socks5_server()
+    
+    
+    def get_all_proxies(self):
+        """
+        Функция, которая возвращает список всех текущих прокси-адресов.
+        """
+        return self._proxies
+    
