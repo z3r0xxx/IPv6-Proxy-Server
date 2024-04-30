@@ -27,7 +27,7 @@ class ProxyServer:
 
     def rotate_ipv6(self):
         """
-        Ротация IPv6 адресов.
+        Ротация IPv6 адресов каждые rotation_interval секунд.
         """
         
         self._proxies = [self.generate_ipv6() for _ in range(self.num_proxies)]
@@ -74,7 +74,6 @@ class ProxyServer:
         client_socket.close()
 
 
-
     def start_socks5_server(self):
         """
         Функция, которая осуществляет запуск SOCKS5 сервера.
@@ -113,3 +112,11 @@ class ProxyServer:
         """
         return self._proxies
     
+
+if __name__ == "__main__":
+
+    # Создание экземпляра прокси-сервера
+    proxy_server = ProxyServer(subnet="fe80::", prefix_length=48, num_proxies=10)
+
+    # Запуск SOCKS5 сервера
+    proxy_server.start_socks5_server()
