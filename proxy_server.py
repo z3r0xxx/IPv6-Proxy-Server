@@ -71,6 +71,14 @@ class ProxyServer:
         # Если учетные данные верны или не требуется аутентификация
         # Отправляем клиенту IP адрес прокси
         client_socket.sendall(proxy_ip.encode())
+        
+        while True:
+            request = client_socket.recv(4096)
+            if not request:
+                break
+            print("Received request:")
+            print(request.decode())
+
         client_socket.close()
 
 
