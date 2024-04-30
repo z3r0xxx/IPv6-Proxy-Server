@@ -4,7 +4,7 @@
 ## Установка и запуск
 1. Клонируйте репозиторий:
 ```bash
-git clone https://github.com/z3r0xxx/IPv6-Proxy-Server.git
+[git clone https://github.com/z3r0xxx/IPv6-Proxy-Server.git](https://github.com/z3r0xxx/IPv6-Proxy-Server.git)
 ```
 2. Перейдите в каталог проекта:
 ```
