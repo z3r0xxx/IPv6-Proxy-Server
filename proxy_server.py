@@ -80,7 +80,7 @@ class ProxyServer:
         """
         
         server = socks.socksocket(socket.AF_INET6, socket.SOCK_STREAM)
-        server.bind(('::', 1080))
+        server.bind(('::', 1081))
         server.listen(5)
         print("[*] SOCKS5 Server started on :: at port 1080")
 
