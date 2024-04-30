@@ -12,7 +12,7 @@ cd IPv6-Proxy-Server
 ```
 3. Запустите скрипт proxy_server.py:
 ```
-python proxy_server.py
+python3 proxy_server.py
 ```
 
 ## Параметры конфигурации
