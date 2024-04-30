@@ -27,7 +27,7 @@ class ProxyServer:
 
     def rotate_ipv6(self):
         """
-        Ротация IPv6 адресов каждые rotation_interval секунд.
+        Ротация IPv6 адресов.
         """
         
         self._proxies = [self.generate_ipv6() for _ in range(self.num_proxies)]
