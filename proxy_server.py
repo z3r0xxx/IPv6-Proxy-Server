@@ -6,19 +6,15 @@ import random
 import time
 
 class ProxyServer:
-    def __init__(self, subnet="fe80::/64", prefix_length=64, num_proxies=1, rotation_interval=600, username=None, password=None, allowed_hosts=None, blocked_hosts=None):
+    def __init__(self, subnet="fe80::/64", prefix_length=64, num_proxies=1, username=None, password=None, allowed_hosts=None, blocked_hosts=None):
         self.subnet = subnet
         self.prefix_length = prefix_length
         self.num_proxies = num_proxies
-        self.rotation_interval = rotation_interval
         self.username = username
         self.password = password
         self.allowed_hosts = allowed_hosts
         self.blocked_hosts = blocked_hosts
         self._proxies = []
-        self.rotate_ipv6_thread = None
-        self.rotation_stop_event = threading.Event()
-
 
     def generate_ipv6(self):
         """
@@ -34,10 +30,8 @@ class ProxyServer:
         Ротация IPv6 адресов каждые rotation_interval секунд.
         """
         
-        while not self.rotation_stop_event.is_set():
-            self._proxies = [self.generate_ipv6() for _ in range(self.num_proxies)]
-            print(f"Rotated {self.num_proxies} IPv6 proxies")
-            time.sleep(self.rotation_interval)
+        self._proxies = [self.generate_ipv6() for _ in range(self.num_proxies)]
+        print(f"Rotated {self.num_proxies} IPv6 proxies")
 
 
     def handle_client(self, client_socket, proxy_index):
@@ -45,9 +39,6 @@ class ProxyServer:
         Обработка подключения клиента.
         """
         
-        proxy_ip = self._proxies[proxy_index]
-        print(f"Client connected. Proxy IPv6: {proxy_ip}")
-
         if self.username and self.password:
             # Читаем заголовок авторизации от клиента
             auth_header = client_socket.recv(1024).decode()
@@ -71,6 +62,12 @@ class ProxyServer:
                 client_socket.close()
                 return
 
+        # Ротация адресов
+        self.rotate_ipv6()
+        # Выбираем адрес клиенту
+        proxy_ip = self._proxies[proxy_index]
+        print(f"Client connected. Proxy IPv6: {proxy_ip}")
+        
         # Если учетные данные верны или не требуется аутентификация
         # Отправляем клиенту IP адрес прокси
         client_socket.sendall(proxy_ip.encode())
@@ -88,24 +85,12 @@ class ProxyServer:
         server.listen(5)
         print("[*] SOCKS5 Server started on :: at port 1080")
 
-        self.rotate_ipv6_thread = threading.Thread(target=self.rotate_ipv6)
-        self.rotate_ipv6_thread.start()
-
         while True:
             client_socket, addr = server.accept()
             print(f"[*] Accepted connection from {addr[0]}:{addr[1]}")
             proxy_index = random.randint(0, self.num_proxies - 1)
             client_handler = threading.Thread(target=self.handle_client, args=(client_socket, proxy_index))
             client_handler.start()
-
-
-    def stop_rotation(self):
-        """
-        Функция, которая выполняет остановку ротации IPv6 адресов.
-        """
-        
-        self.rotation_stop_event.set()
-        self.rotate_ipv6_thread.join()
         
 
     def get_proxy_info(self):
@@ -115,7 +100,6 @@ class ProxyServer:
         
         return {
             "num_proxies": self.num_proxies,
-            "rotation_interval": self.rotation_interval,
             "username": self.username,
             "password": self.password,
             "allowed_hosts": self.allowed_hosts,
