@@ -28,7 +28,7 @@ python3 proxy_server.py
 - `blocked_hosts`: Список запрещенных хостов (опционально).
 
 ## Пример использования
-```
+```python
 from proxy_server import ProxyServer
 
 # Создание экземпляра прокси-сервера
