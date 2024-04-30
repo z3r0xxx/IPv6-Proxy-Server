@@ -88,9 +88,9 @@ class ProxyServer:
         """
         
         server = socks.socksocket(socket.AF_INET6, socket.SOCK_STREAM)
-        server.bind(('::', 1081))
+        server.bind(('::', 1082))
         server.listen(5)
-        print("[*] SOCKS5 Server started on :: at port 1080")
+        print("[*] SOCKS5 Server started on :: at port 1082")
 
         while True:
             client_socket, addr = server.accept()
