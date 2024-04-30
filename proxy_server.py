@@ -116,7 +116,7 @@ class ProxyServer:
 if __name__ == "__main__":
 
     # Создание экземпляра прокси-сервера
-    proxy_server = ProxyServer(subnet="2a0f:cdc6:50:fe::/44", prefix_length=44, num_proxies=10)
+    proxy_server = ProxyServer(subnet="2a0f:cdc6:50:fe::/64", prefix_length=64, num_proxies=10)
 
     # Запуск SOCKS5 сервера
     proxy_server.start_socks5_server()
