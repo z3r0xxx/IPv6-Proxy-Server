@@ -22,7 +22,7 @@ class ProxyServer:
         """
         
         ipv6_network = ipaddress.IPv6Network(self.subnet)
-        return str(ipaddress.IPv6Address(random.randint(int(ipv6_network.network_address), int(ipv6_network.broadcast_address))))
+        return str(ipaddress.IPv6Address(random.randint(int(ipv6_network.network_address) + 1, int(ipv6_network.broadcast_address) - 1)))
 
 
     def rotate_ipv6(self):
